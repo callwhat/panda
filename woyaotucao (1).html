@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我要吐槽！</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #FF6B6B;
+  --primary-dark: #e85555;
+  --secondary: #FFE66D;
+  --accent: #4ECDC4;
+  --accent-dark: #3ab5ac;
+  --bg: #FFF8F0;
+  --card: #FFFFFF;
+  --text: #2D2D2D;
+  --text-muted: #888;
+  --border: rgba(0,0,0,0.08);
+  --shadow: 0 4px 20px rgba(255,107,107,0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ---- Blob Background ---- */
+.blobs {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.blob {
+  position: absolute; border-radius: 50%; opacity: 0.18; filter: blur(60px);
+  animation: blobFloat 8s ease-in-out infinite;
+}
+.blob1 { width: 400px; height: 400px; background: #FF6B6B; top: -100px; left: -100px; animation-delay: 0s; }
+.blob2 { width: 300px; height: 300px; background: #FFE66D; top: 30%; right: -80px; animation-delay: 2s; }
+.blob3 { width: 350px; height: 350px; background: #4ECDC4; bottom: -80px; left: 30%; animation-delay: 4s; }
+@keyframes blobFloat {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33% { transform: translate(20px,-20px) scale(1.05); }
+  66% { transform: translate(-15px,15px) scale(0.95); }
+}
+
+/* ---- Header ---- */
+header {
+  position: relative; z-index: 10;
+  padding: 1.2rem 2rem;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,248,240,0.85); backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid var(--border);
+  animation: slideDown 0.5s ease;
+}
+@keyframes slideDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+
+.logo {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.6rem; font-weight: 900;
+  color: var(--primary);
+  display: flex; align-items: center; gap: 8px;
+}
+.logo-emoji { font-size: 1.8rem; animation: wiggle 2s ease-in-out infinite; }
+@keyframes wiggle { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+
+.header-stats {
+  display: flex; gap: 1.5rem;
+}
+.stat-item {
+  text-align: center;
+  animation: popIn 0.6s ease backwards;
+}
+.stat-item:nth-child(2) { animation-delay: 0.1s; }
+.stat-num {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.4rem; font-weight: 800;
+  color: var(--primary);
+  display: block;
+}
+.stat-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+@keyframes popIn { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
+
+/* ---- Marquee ---- */
+.marquee-wrap {
+  position: relative; z-index: 10;
+  background: var(--primary); overflow: hidden;
+  padding: 6px 0;
+}
+.marquee-inner {
+  display: flex; width: max-content;
+  animation: marqueeScroll 28s linear infinite;
+}
+.marquee-inner:hover { animation-play-state: paused; }
+.marquee-item {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.78rem; font-weight: 700;
+  color: white; white-space: nowrap;
+  padding: 0 2rem;
+  opacity: 0.92;
+}
+@keyframes marqueeScroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+/* ---- Layout ---- */
+.layout {
+  position: relative; z-index: 5;
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 2rem;
+}
+
+/* ---- Compose Zone ---- */
+.compose-zone {
+  display: flex; flex-direction: column; gap: 1rem;
+  animation: slideUp 0.5s ease 0.1s backwards;
+}
+@keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+.zone-card {
+  background: var(--card);
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.zone-title {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.8rem; font-weight: 800;
+  color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 0.75rem;
+}
+
+/* Mood buttons */
+.mood-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.mood-btn {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem; font-weight: 700;
+  padding: 7px 14px; border-radius: 50px;
+  border: 2px solid transparent;
+  cursor: pointer; transition: all 0.2s;
+  background: #f5f5f5; color: #666;
+  display: flex; align-items: center; gap: 5px;
+}
+.mood-btn:hover { transform: scale(1.06); }
+.mood-btn.active {
+  background: var(--primary); color: white;
+  border-color: var(--primary);
+  box-shadow: 0 3px 12px rgba(255,107,107,0.35);
+  transform: scale(1.06);
+}
+
+/* Anger meter */
+.anger-meter { margin: 0.5rem 0 0; }
+.anger-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.anger-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+.anger-val { font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 800; color: var(--primary); }
+.anger-track {
+  height: 10px; background: #f0f0f0; border-radius: 10px; overflow: hidden;
+}
+.anger-fill {
+  height: 100%; border-radius: 10px;
+  background: linear-gradient(90deg, #FFE66D, #FF6B6B);
+  transition: width 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  width: 0%;
+}
+
+/* Textarea */
+.textarea-wrap { position: relative; }
+.tucao-textarea {
+  width: 100%; min-height: 130px;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.92rem; font-weight: 500; line-height: 1.7;
+  color: var(--text);
+  background: #fafafa; border: 2px solid #eee; border-radius: 14px;
+  padding: 12px 14px; resize: none; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.tucao-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(255,107,107,0.12); }
+.tucao-textarea::placeholder { color: #ccc; }
+.tucao-textarea.shake { animation: shake 0.4s ease; }
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-5px)}
+  40%{transform:translateX(5px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+.char-count { position: absolute; bottom: 10px; right: 12px; font-size: 0.72rem; color: #ccc; font-weight: 600; }
+
+/* Templates */
+.templates { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.tpl-btn {
+  font-size: 0.72rem; font-weight: 600; font-family: 'Nunito', sans-serif;
+  padding: 4px 10px; border-radius: 20px;
+  border: 1.5px dashed #ddd; background: white;
+  color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+}
+.tpl-btn:hover { border-color: var(--primary); color: var(--primary); background: #fff5f5; }
+
+/* Tags */
+.tag-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag-btn {
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.78rem; font-weight: 700;
+  padding: 5px 12px; border-radius: 20px;
+  border: 2px solid #eee; background: white;
+  color: #888; cursor: pointer; transition: all 0.18s;
+}
+.tag-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tag-btn.active { background: var(--accent); border-color: var(--accent); color: white; box-shadow: 0 2px 8px rgba(78,205,196,0.3); }
+
+/* Footer row */
+.compose-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+
+.anon-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.toggle-track {
+  width: 40px; height: 22px; border-radius: 11px;
+  background: #ddd; position: relative; transition: background 0.2s;
+}
+.toggle-track.on { background: var(--accent); }
+.toggle-thumb {
+  width: 18px; height: 18px; border-radius: 50%; background: white;
+  position: absolute; top: 2px; left: 2px; transition: left 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.toggle-track.on .toggle-thumb { left: 20px; }
+.anon-label { font-size: 0.82rem; font-weight: 700; font-family: 'Nunito', sans-serif; color: var(--text-muted); }
+
+.submit-btn {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem; font-weight: 800;
+  padding: 10px 28px; border-radius: 50px;
+  background: var(--primary); color: white; border: none;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(255,107,107,0.35);
+  position: relative; overflow: hidden;
+}
+.submit-btn:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,107,0.45); }
+.submit-btn:active { transform: scale(0.96); }
+
+/* ---- Feed Zone ---- */
+.feed-zone {
+  display: flex; flex-direction: column; gap: 1rem;
+  animation: slideUp 0.5s ease 0.2s backwards;
+}
+
+.feed-filters { display: flex; gap: 6px; }
+.feed-filter {
+  font-family: 'Nunito', sans-serif; font-size: 0.78rem; font-weight: 700;
+  padding: 6px 14px; border-radius: 20px;
+  border: 2px solid #eee; background: white; color: #888;
+  cursor: pointer; transition: all 0.15s;
+}
+.feed-filter.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+.feed-list { display: flex; flex-direction: column; gap: 10px; }
+
+.feed-card {
+  background: var(--card);
+  border-radius: 18px;
+  border: 1.5px solid var(--border);
+  padding: 1rem 1.1rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+  animation: cardPop 0.4s ease backwards;
+  cursor: default;
+}
+.feed-card:hover {
+  transform: translateY(-3px) rotate(0deg) !important;
+  box-shadow: 0 8px 24px rgba(255,107,107,0.15);
+}
+@keyframes cardPop { from{opacity:0;transform:scale(0.9) translateY(10px)} to{opacity:1} }
+
+.card-header { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; flex-wrap: wrap; }
+.mood-tag {
+  font-family: 'Nunito', sans-serif; font-size: 0.72rem; font-weight: 800;
+  padding: 2px 9px; border-radius: 20px;
+  background: #fff5f5; color: var(--primary);
+}
+.cat-tag {
+  font-family: 'Nunito', sans-serif; font-size: 0.7rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+  background: #f0fffe; color: var(--accent-dark);
+}
+.card-meta { font-size: 0.7rem; color: #bbb; margin-left: auto; }
+.hot-tag {
+  font-size: 0.7rem; font-weight: 700; font-family: 'Nunito', sans-serif;
+  padding: 2px 7px; border-radius: 20px;
+  background: var(--secondary); color: #7a6a00;
+}
+
+.mini-anger { margin: 4px 0 6px; height: 5px; background: #f5f5f5; border-radius: 5px; overflow: hidden; }
+.mini-anger-fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg,#FFE66D,#FF6B6B); }
+
+.card-text { font-size: 0.85rem; line-height: 1.7; color: var(--text); margin-bottom: 8px; }
+
+.card-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.card-action {
+  display: flex; align-items: center; gap: 4px;
+  font-family: 'Nunito', sans-serif; font-size: 0.75rem; font-weight: 700;
+  padding: 5px 11px; border-radius: 20px;
+  border: 1.5px solid #eee; background: white;
+  color: #888; cursor: pointer; transition: all 0.15s;
+}
+.card-action:hover { transform: scale(1.05); }
+.card-action.angry:hover, .card-action.angry.active { background: #fff5f5; border-color: var(--primary); color: var(--primary); }
+.card-action.comment:hover { background: #f5f5f5; border-color: #ccc; color: #555; }
+.card-action.relief:hover, .card-action.relief.active { background: #f0fffe; border-color: var(--accent); color: var(--accent); }
+
+.comment-area { margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px; }
+.comment-item { display: flex; gap: 7px; margin-bottom: 6px; }
+.comment-avatar {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  background: var(--primary); display: flex; align-items: center; justify-content: center;
+  font-size: 0.62rem; color: white; font-weight: 700; font-family: 'Nunito', sans-serif;
+}
+.comment-body { flex: 1; }
+.comment-name { font-size: 0.7rem; font-weight: 700; color: #555; font-family: 'Nunito', sans-serif; }
+.comment-text { font-size: 0.78rem; color: #777; line-height: 1.5; }
+.ai-bubble {
+  background: linear-gradient(135deg,#fff5f5,#fff8f0);
+  border: 1px solid #ffd4d4; border-radius: 10px;
+  padding: 7px 10px; margin-top: 4px; margin-bottom: 6px;
+}
+.ai-bubble-label { font-size: 0.65rem; font-weight: 800; color: var(--primary); font-family:'Nunito',sans-serif; margin-bottom:3px; }
+.ai-bubble-text { font-size: 0.78rem; color: #c05050; line-height: 1.6; }
+.comment-input-row { display: flex; gap: 6px; margin-top: 6px; }
+.comment-input {
+  flex: 1; font-family: 'Quicksand', sans-serif; font-size: 0.8rem;
+  border: 1.5px solid #eee; border-radius: 20px; padding: 5px 12px;
+  outline: none; background: #fafafa; color: var(--text);
+}
+.comment-input:focus { border-color: var(--primary); }
+.comment-send {
+  font-family: 'Nunito', sans-serif; font-size: 0.75rem; font-weight: 700;
+  padding: 5px 13px; border-radius: 20px;
+  background: var(--primary); color: white; border: none; cursor: pointer;
+}
+
+/* ---- Particles ---- */
+#particles-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+.particle {
+  position: absolute; font-size: 1.6rem;
+  animation: particleFly 1.2s ease-out forwards;
+  pointer-events: none;
+}
+@keyframes particleFly {
+  0% { opacity: 1; transform: translate(0,0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.4); }
+}
+
+/* ---- Cycle footer ---- */
+.cycle-footer {
+  position: relative; z-index: 5;
+  text-align: center; padding: 1rem;
+  border-top: 2px dashed rgba(255,107,107,0.2);
+  margin: 0 1.5rem 1.5rem;
+  color: var(--text-muted); font-size: 0.82rem; font-weight: 600;
+}
+.cycle-footer span { color: var(--primary); font-weight: 800; cursor: pointer; }
+.cycle-footer span:hover { text-decoration: underline; }
+
+/* Toast */
+.toast-bar {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: #2d2d2d; color: white; padding: 10px 22px;
+  border-radius: 50px; font-size: 0.82rem; font-weight: 600; font-family: 'Nunito', sans-serif;
+  opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 1000;
+  white-space: nowrap;
+}
+.toast-bar.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="blobs">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+</div>
+
+<div id="particles-wrap"></div>
+
+<header>
+  <div class="logo">
+    <span class="logo-emoji">😤</span>
+    我要吐槽！
+  </div>
+  <div class="header-stats">
+    <div class="stat-item">
+      <span class="stat-num" id="statTotal">0</span>
+      <span class="stat-label">今日吐槽</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="statRelief" style="color:var(--accent)">0</span>
+      <span class="stat-label">已释怀</span>
+    </div>
+  </div>
+</header>
+
+<div class="marquee-wrap">
+  <div class="marquee-inner" id="marqueeInner"></div>
+</div>
+
+<div class="layout">
+  <!-- LEFT: Compose -->
+  <div class="compose-zone">
+
+    <div class="zone-card">
+      <div class="zone-title">💬 现在心情如何？</div>
+      <div class="mood-row" id="moodRow">
+        <button class="mood-btn active" data-mood="😤 愤怒" onclick="selectMood(this)">😤 愤怒</button>
+        <button class="mood-btn" data-mood="😩 无奈" onclick="selectMood(this)">😩 无奈</button>
+        <button class="mood-btn" data-mood="🤦 无语" onclick="selectMood(this)">🤦 无语</button>
+        <button class="mood-btn" data-mood="😭 委屈" onclick="selectMood(this)">😭 委屈</button>
+        <button class="mood-btn" data-mood="🙃 麻了" onclick="selectMood(this)">🙃 麻了</button>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-title">🔥 愤怒指数</div>
+      <div class="anger-meter">
+        <div class="anger-header">
+          <span class="anger-label" id="angerLabel">平静如水</span>
+          <span class="anger-val" id="angerVal">0%</span>
+        </div>
+        <div class="anger-track"><div class="anger-fill" id="angerFill"></div></div>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-title">✍️ 尽情吐槽吧</div>
+      <div class="templates">
+        <button class="tpl-btn" onclick="insertTpl('明明是我的功劳，但')">明明是我的功劳，但...</button>
+        <button class="tpl-btn" onclick="insertTpl('我就不明白了，为什么')">为什么...</button>
+        <button class="tpl-btn" onclick="insertTpl('今天忍了一整天，现在')">忍了一整天...</button>
+        <button class="tpl-btn" onclick="insertTpl('这件事让我彻底')">彻底崩溃...</button>
+      </div>
+      <div class="textarea-wrap" style="margin-top:8px">
+        <textarea class="tucao-textarea" id="tuCaoInput" maxlength="500"
+          placeholder="把憋在心里的话统统说出来……（最多500字）"></textarea>
+        <span class="char-count"><span id="charNum">0</span>/500</span>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="zone-title">🏷️ 选个标签（最多3个）</div>
+      <div class="tag-grid" id="tagGrid">
+        <button class="tag-btn" onclick="toggleTag(this)">职场PUA</button>
+        <button class="tag-btn" onclick="toggleTag(this)">家庭矛盾</button>
+        <button class="tag-btn" onclick="toggleTag(this)">恋爱烦恼</button>
+        <button class="tag-btn" onclick="toggleTag(this)">社会奇景</button>
+        <button class="tag-btn" onclick="toggleTag(this)">外卖刺客</button>
+        <button class="tag-btn" onclick="toggleTag(this)">通勤地狱</button>
+        <button class="tag-btn" onclick="toggleTag(this)">催婚催育</button>
+        <button class="tag-btn" onclick="toggleTag(this)">系统卡顿</button>
+      </div>
+    </div>
+
+    <div class="zone-card">
+      <div class="compose-footer">
+        <div class="anon-toggle" onclick="toggleAnon()">
+          <div class="toggle-track on" id="anonTrack"><div class="toggle-thumb"></div></div>
+          <span class="anon-label" id="anonLabel">匿名发布</span>
+        </div>
+        <button class="submit-btn" onclick="submitTuCao()">💢 我要吐槽！</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Feed -->
+  <div class="feed-zone">
+    <div class="feed-filters" id="feedFilters">
+      <button class="feed-filter active" onclick="setFilter(this,'hot')">🔥 最热</button>
+      <button class="feed-filter" onclick="setFilter(this,'new')">🆕 最新</button>
+      <button class="feed-filter" onclick="setFilter(this,'relief')">🌿 已释怀</button>
+    </div>
+    <div class="feed-list" id="feedList"></div>
+  </div>
+</div>
+
+<div class="cycle-footer">
+  说出来舒服多了吧？——<span onclick="document.getElementById('tuCaoInput').focus()">又有了新槽点？继续吐槽 →</span>
+</div>
+
+<div class="toast-bar" id="toast"></div>
+
+<script>
+let anonOn = true, selectedMood = '😤 愤怒', activeFilter = 'hot';
+let selectedTags = [], nextId = 5;
+let statTotal = 4, statRelief = 1;
+
+const cards = [
+  {id:1,mood:'😤 愤怒',tags:['职场PUA'],text:'今天开会，我提了个方案，领导当场否定。下午他把同样的方案包装一下发给大家，说是他想到的。我坐在那里，笑着说"好主意"，内心已经飞出三千米。',anon:true,time:'3分钟前',anger:82,resonate:47,resonated:false,comments:[],showComments:false,aiReply:'',relieved:false},
+  {id:2,mood:'😩 无奈',tags:['催婚催育','家庭矛盾'],text:'我妈每次视频都要问"找对象了吗"，我每次都说没有，她每次都叹气。这个循环已经持续4年了。我们都知道结果，但还是要走完这个流程。',anon:false,name:'沉默的鱼',time:'12分钟前',anger:55,resonate:83,resonated:false,comments:[{user:'路过的人',text:'我妈加了年份，从大学问到现在已经7年了，握手',ai:false}],showComments:false,aiReply:'',relieved:false},
+  {id:3,mood:'🤦 无语',tags:['外卖刺客','社会奇景'],text:'外卖备注"不要香菜"，送来满满一碗香菜。联系商家，说"已经备注了就不是我们的问题"。好，我明白了，备注是用来装饰的。',anon:true,time:'28分钟前',anger:91,resonate:126,resonated:false,comments:[],showComments:false,hot:true,aiReply:'',relieved:false},
+  {id:4,mood:'😭 委屈',tags:['恋爱烦恼'],text:'分手三个月了，今天在超市碰到他，他旁边站着一个人。我假装没看见转身走了，结账的时候发现钱包落在了他那排货架边上。我没有回去拿。',anon:true,time:'1小时前',anger:68,resonate:219,resonated:false,comments:[{user:'懂你的风',text:'那个钱包现在怎么样了',ai:false}],showComments:false,hot:true,aiReply:'',relieved:true},
+];
+
+const rotations = ['-1.2deg','0.8deg','-0.5deg','1.5deg','-0.9deg','0.4deg'];
+
+function getFiltered() {
+  if (activeFilter === 'hot') return [...cards].sort((a,b) => b.resonate - a.resonate);
+  if (activeFilter === 'new') return [...cards].sort((a,b) => b.id - a.id);
+  if (activeFilter === 'relief') return cards.filter(c => c.relieved);
+  return cards;
+}
+
+function renderFeed() {
+  const list = document.getElementById('feedList');
+  const filtered = getFiltered();
+  if (!filtered.length) {
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:#ccc;font-size:0.85rem">暂无内容，来发第一条吐槽吧！</div>';
+    return;
+  }
+  list.innerHTML = filtered.map((c,i) => cardHTML(c, i)).join('');
+}
+
+function cardHTML(c, i) {
+  const rot = rotations[i % rotations.length];
+  const commHtml = c.showComments ? `
+    <div class="comment-area">
+      ${c.aiReply ? `<div class="ai-bubble"><div class="ai-bubble-label">🤖 AI共情</div><div class="ai-bubble-text">${c.aiReply}</div></div>` : ''}
+      ${c.aiLoading ? `<div style="font-size:0.75rem;color:var(--primary);padding:4px 0">AI共情中…⏳</div>` : ''}
+      ${c.comments.map(cm => `
+        <div class="comment-item">
+          <div class="comment-avatar">${cm.user[0]}</div>
+          <div class="comment-body">
+            <div class="comment-name">${cm.user}</div>
+            <div class="comment-text">${cm.text}</div>
+          </div>
+        </div>`).join('')}
+      <div class="comment-input-row">
+        <input class="comment-input" id="ci-${c.id}" placeholder="说点什么…" maxlength="100" onkeydown="if(event.key==='Enter')postComment(${c.id})">
+        <button class="comment-send" onclick="postComment(${c.id})">发送</button>
+      </div>
+    </div>` : '';
+
+  return `<div class="feed-card" id="fc-${c.id}" style="transform:rotate(${rot})">
+    <div class="card-header">
+      <span class="mood-tag">${c.mood}</span>
+      ${c.tags.map(t=>`<span class="cat-tag">${t}</span>`).join('')}
+      ${c.hot?'<span class="hot-tag">🔥 热门</span>':''}
+      ${c.relieved?'<span class="cat-tag" style="background:#f0fff4;color:#2d8a5a">🌿 已释怀</span>':''}
+      <span class="card-meta">${c.anon?'匿名':(c.name||'用户')} · ${c.time}</span>
+    </div>
+    <div class="mini-anger"><div class="mini-anger-fill" style="width:${c.anger}%"></div></div>
+    <div class="card-text">${c.text}</div>
+    <div class="card-actions">
+      <button class="card-action angry ${c.resonated?'active':''}" onclick="doResonate(${c.id})">
+        😡 替你生气 <span id="rv-${c.id}">${c.resonate}</span>
+      </button>
+      <button class="card-action comment" onclick="toggleComments(${c.id})">
+        💬 ${c.comments.length || '说点什么'}
+      </button>
+      ${!c.aiReply && !c.aiLoading ? `<button class="card-action" onclick="getAI(${c.id})">🤖 AI共情</button>` : ''}
+      <button class="card-action relief ${c.relieved?'active':''}" onclick="doRelief(${c.id})">
+        🌿 ${c.relieved?'已释怀':'释怀了'}
+      </button>
+    </div>
+    ${commHtml}
+  </div>`;
+}
+
+function doResonate(id) {
+  const c = cards.find(x=>x.id===id);
+  if(!c) return;
+  c.resonated = !c.resonated;
+  c.resonate += c.resonated ? 1 : -1;
+  if(c.resonated) showToast('已替你生气！😡');
+  renderFeed(); updateMarquee();
+}
+
+function toggleComments(id) {
+  const c = cards.find(x=>x.id===id);
+  if(!c) return;
+  c.showComments = !c.showComments;
+  renderFeed();
+  if(c.showComments) setTimeout(()=>{ const el=document.getElementById('ci-'+id); if(el)el.focus(); },50);
+}
+
+function postComment(id) {
+  const inp = document.getElementById('ci-'+id);
+  if(!inp||!inp.value.trim()) return;
+  const c = cards.find(x=>x.id===id);
+  if(!c) return;
+  c.comments.push({user: anonOn?'匿名用户':'我', text:inp.value.trim()});
+  showToast('评论成功！');
+  renderFeed();
+}
+
+async function getAI(id) {
+  const c = cards.find(x=>x.id===id);
+  if(!c) return;
+  c.showComments = true; c.aiLoading = true;
+  renderFeed();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:1000,
+        system:'你是一个温暖的情感支持助手。用户发了一条吐槽，请用2-3句话给予真诚共情，语气温柔接地气，不说大道理，让用户感到被理解。中文回复，不超过80字。',
+        messages:[{role:'user',content:'吐槽：'+c.text}]
+      })
+    });
+    const data = await res.json();
+    c.aiReply = data.content&&data.content[0] ? data.content[0].text : '你的感受完全可以理解，说出来就好多了。';
+  } catch(e) {
+    c.aiReply = '能说出来就已经很勇敢了，你不是一个人。';
+  }
+  c.aiLoading = false;
+  showToast('AI共情完成 🤖');
+  renderFeed();
+}
+
+function doRelief(id) {
+  const c = cards.find(x=>x.id===id);
+  if(!c) return;
+  c.relieved = !c.relieved;
+  if(c.relieved) { statRelief++; showToast('释怀了！世界因你更美好 🌿'); }
+  else { statRelief = Math.max(0, statRelief-1); }
+  updateStats(); renderFeed();
+}
+
+function setFilter(el, f) {
+  document.querySelectorAll('.feed-filter').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter = f;
+  renderFeed();
+}
+
+// Compose
+function selectMood(el) {
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  selectedMood = el.dataset.mood;
+}
+
+function toggleTag(el) {
+  if(el.classList.contains('active')) {
+    el.classList.remove('active');
+    selectedTags = selectedTags.filter(t=>t!==el.textContent);
+  } else {
+    if(selectedTags.length >= 3) { showToast('最多选3个标签'); return; }
+    el.classList.add('active');
+    selectedTags.push(el.textContent);
+  }
+}
+
+function toggleAnon() {
+  anonOn = !anonOn;
+  document.getElementById('anonTrack').classList.toggle('on', anonOn);
+  document.getElementById('anonLabel').textContent = anonOn ? '匿名发布' : '实名发布';
+}
+
+function insertTpl(text) {
+  const ta = document.getElementById('tuCaoInput');
+  ta.value = text; ta.focus();
+  ta.selectionStart = ta.selectionEnd = text.length;
+  updateAnger();
+}
+
+const angerKeywords = ['愤怒','气死','崩溃','无语','离谱','荒谬','忍不了','受够了','太过分','凭什么','不公平','骗','PUA','吐了','恶心','蠢','垃圾','废物','滚'];
+function updateAnger() {
+  const text = document.getElementById('tuCaoInput').value;
+  document.getElementById('charNum').textContent = text.length;
+  let score = Math.min(100, Math.round((text.length / 500) * 60));
+  angerKeywords.forEach(k=>{ if(text.includes(k)) score = Math.min(100, score+12); });
+  document.getElementById('angerFill').style.width = score + '%';
+  document.getElementById('angerVal').textContent = score + '%';
+  const labels = ['平静如水','有点烦','明显不满','相当愤怒','怒火中烧','要爆炸了！'];
+  const idx = Math.min(5, Math.floor(score/18));
+  document.getElementById('angerLabel').textContent = labels[idx];
+  if(score > 70) {
+    document.getElementById('tuCaoInput').classList.add('shake');
+    setTimeout(()=>document.getElementById('tuCaoInput').classList.remove('shake'), 400);
+  }
+}
+document.getElementById('tuCaoInput').addEventListener('input', updateAnger);
+
+function submitTuCao() {
+  const text = document.getElementById('tuCaoInput').value.trim();
+  if(!text) { showToast('写点什么再发嘛~'); return; }
+  const anger = parseInt(document.getElementById('angerVal').textContent);
+  const newCard = {
+    id: nextId++, mood: selectedMood, tags: [...selectedTags],
+    text, anon: anonOn, name:'我', time:'刚刚',
+    anger, resonate:0, resonated:false,
+    comments:[], showComments:false, aiReply:'', relieved:false
+  };
+  cards.unshift(newCard);
+  statTotal++;
+  updateStats();
+  document.getElementById('tuCaoInput').value='';
+  document.getElementById('charNum').textContent='0';
+  document.getElementById('angerFill').style.width='0%';
+  document.getElementById('angerVal').textContent='0%';
+  document.getElementById('angerLabel').textContent='平静如水';
+  selectedTags=[];
+  document.querySelectorAll('.tag-btn').forEach(b=>b.classList.remove('active'));
+  if(activeFilter!=='new') {
+    document.querySelectorAll('.feed-filter').forEach(b=>b.classList.remove('active'));
+    document.querySelector('.feed-filter').classList.add('active');
+    activeFilter='hot';
+  }
+  spawnParticles();
+  showToast('吐槽成功！说出来就好多了 💢');
+  renderFeed(); updateMarquee();
+}
+
+function spawnParticles() {
+  const wrap = document.getElementById('particles-wrap');
+  const emojis = ['💢','🔥','💥','😤','⚡','💫'];
+  const btn = document.querySelector('.submit-btn');
+  const rect = btn.getBoundingClientRect();
+  for(let i=0; i<18; i++) {
+    const p = document.createElement('div');
+    p.className='particle';
+    p.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    const dx = (Math.random()-0.5)*260 + 'px';
+    const dy = -(Math.random()*200+80) + 'px';
+    p.style.cssText=`left:${rect.left+rect.width/2}px;top:${rect.top}px;--dx:${dx};--dy:${dy};animation-delay:${Math.random()*0.3}s`;
+    wrap.appendChild(p);
+    setTimeout(()=>p.remove(), 1500);
+  }
+}
+
+function updateStats() {
+  animateNum('statTotal', statTotal);
+  animateNum('statRelief', statRelief);
+}
+
+const _numTimers = {};
+function animateNum(id, target) {
+  const el = document.getElementById(id);
+  if(_numTimers[id]) clearInterval(_numTimers[id]);
+  let cur = parseInt(el.textContent)||0;
+  if(cur === target) return;
+  const step = target > cur ? 1 : -1;
+  _numTimers[id] = setInterval(()=>{
+    cur += step;
+    el.textContent = cur;
+    if(cur === target){ clearInterval(_numTimers[id]); delete _numTimers[id]; }
+  }, 40);
+}
+
+function updateMarquee() {
+  const hot = [...cards].sort((a,b)=>b.resonate-a.resonate).slice(0,6);
+  const items = hot.map(c=>`<span class="marquee-item">🔥 ${c.text.slice(0,22)}… (${c.resonate}个人替你生气)</span>`).join('');
+  const inner = document.getElementById('marqueeInner');
+  inner.innerHTML = items + items;
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// Init
+updateStats();
+renderFeed();
+updateMarquee();
+</script>
+</body>
+</html>
