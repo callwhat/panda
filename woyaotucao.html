@@ -496,15 +496,46 @@ header {
 
 <script>
 let anonOn = true, selectedMood = '😤 愤怒', activeFilter = 'hot';
-let selectedTags = [], nextId = 5;
-let statTotal = 4, statRelief = 1;
+let selectedTags = [];
 
-const cards = [
+// ---- 默认种子数据 ----
+const SEED_CARDS = [
   {id:1,mood:'😤 愤怒',tags:['职场PUA'],text:'今天开会，我提了个方案，领导当场否定。下午他把同样的方案包装一下发给大家，说是他想到的。我坐在那里，笑着说"好主意"，内心已经飞出三千米。',anon:true,time:'3分钟前',anger:82,resonate:47,resonated:false,comments:[],showComments:false,aiReply:'',relieved:false},
-  {id:2,mood:'😩 无奈',tags:['催婚催育','家庭矛盾'],text:'我妈每次视频都要问"找对象了吗"，我每次都说没有，她每次都叹气。这个循环已经持续4年了。我们都知道结果，但还是要走完这个流程。',anon:false,name:'沉默的鱼',time:'12分钟前',anger:55,resonate:83,resonated:false,comments:[{user:'路过的人',text:'我妈加了年份，从大学问到现在已经7年了，握手',ai:false}],showComments:false,aiReply:'',relieved:false},
+  {id:2,mood:'😩 无奈',tags:['催婚催育','家庭矛盾'],text:'我妈每次视频都要问"找对象了吗"，我每次都说没有，她每次都叹气。这个循环已经持续4年了。我们都知道结果，但还是要走完这个流程。',anon:false,name:'沉默的鱼',time:'12分钟前',anger:55,resonate:83,resonated:false,comments:[{user:'路过的人',text:'我妈加了年份，从大学问到现在已经7年了，握手'}],showComments:false,aiReply:'',relieved:false},
   {id:3,mood:'🤦 无语',tags:['外卖刺客','社会奇景'],text:'外卖备注"不要香菜"，送来满满一碗香菜。联系商家，说"已经备注了就不是我们的问题"。好，我明白了，备注是用来装饰的。',anon:true,time:'28分钟前',anger:91,resonate:126,resonated:false,comments:[],showComments:false,hot:true,aiReply:'',relieved:false},
-  {id:4,mood:'😭 委屈',tags:['恋爱烦恼'],text:'分手三个月了，今天在超市碰到他，他旁边站着一个人。我假装没看见转身走了，结账的时候发现钱包落在了他那排货架边上。我没有回去拿。',anon:true,time:'1小时前',anger:68,resonate:219,resonated:false,comments:[{user:'懂你的风',text:'那个钱包现在怎么样了',ai:false}],showComments:false,hot:true,aiReply:'',relieved:true},
+  {id:4,mood:'😭 委屈',tags:['恋爱烦恼'],text:'分手三个月了，今天在超市碰到他，他旁边站着一个人。我假装没看见转身走了，结账的时候发现钱包落在了他那排货架边上。我没有回去拿。',anon:true,time:'1小时前',anger:68,resonate:219,resonated:false,comments:[{user:'懂你的风',text:'那个钱包现在怎么样了'}],showComments:false,hot:true,aiReply:'',relieved:true},
 ];
+
+// ---- localStorage 持久化 ----
+const LS_CARDS  = 'tucao_cards';
+const LS_TOTAL  = 'tucao_statTotal';
+const LS_RELIEF = 'tucao_statRelief';
+const LS_NEXTID = 'tucao_nextId';
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem(LS_CARDS);
+    return saved ? JSON.parse(saved) : null;
+  } catch(e) { return null; }
+}
+
+function saveState() {
+  try {
+    // showComments / aiLoading 是临时 UI 状态，刷新后不恢复
+    const toSave = cards.map(c => ({ ...c, showComments: false, aiLoading: false }));
+    localStorage.setItem(LS_CARDS,  JSON.stringify(toSave));
+    localStorage.setItem(LS_TOTAL,  statTotal);
+    localStorage.setItem(LS_RELIEF, statRelief);
+    localStorage.setItem(LS_NEXTID, nextId);
+  } catch(e) {}
+}
+
+// 初始化数据
+const savedCards = loadState();
+const cards      = savedCards || [...SEED_CARDS];
+let nextId       = parseInt(localStorage.getItem(LS_NEXTID))  || 5;
+let statTotal    = parseInt(localStorage.getItem(LS_TOTAL))   || 4;
+let statRelief   = parseInt(localStorage.getItem(LS_RELIEF))  || 1;
 
 const rotations = ['-1.2deg','0.8deg','-0.5deg','1.5deg','-0.9deg','0.4deg'];
 
@@ -577,7 +608,7 @@ function doResonate(id) {
   c.resonated = !c.resonated;
   c.resonate += c.resonated ? 1 : -1;
   if(c.resonated) showToast('已替你生气！😡');
-  renderFeed(); updateMarquee();
+  saveState(); renderFeed(); updateMarquee();
 }
 
 function toggleComments(id) {
@@ -595,7 +626,7 @@ function postComment(id) {
   if(!c) return;
   c.comments.push({user: anonOn?'匿名用户':'我', text:inp.value.trim()});
   showToast('评论成功！');
-  renderFeed();
+  saveState(); renderFeed();
 }
 
 async function getAI(id) {
@@ -620,7 +651,7 @@ async function getAI(id) {
   }
   c.aiLoading = false;
   showToast('AI共情完成 🤖');
-  renderFeed();
+  saveState(); renderFeed();
 }
 
 function doRelief(id) {
@@ -629,7 +660,7 @@ function doRelief(id) {
   c.relieved = !c.relieved;
   if(c.relieved) { statRelief++; showToast('释怀了！世界因你更美好 🌿'); }
   else { statRelief = Math.max(0, statRelief-1); }
-  updateStats(); renderFeed();
+  saveState(); updateStats(); renderFeed();
 }
 
 function setFilter(el, f) {
@@ -715,7 +746,7 @@ function submitTuCao() {
   }
   spawnParticles();
   showToast('吐槽成功！说出来就好多了 💢');
-  renderFeed(); updateMarquee();
+  saveState(); renderFeed(); updateMarquee();
 }
 
 function spawnParticles() {
